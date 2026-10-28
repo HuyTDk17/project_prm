@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isUser(uid) { return signedIn() && request.auth.uid == uid; }
+
+    // Account profile and private data of a user.
+    match /users/{uid} {
+      allow read, create, update: if isUser(uid);
+      match /subscriptions/{id} { allow read, write: if isUser(uid); }
+      match /history/{id}       { allow read, write: if isUser(uid); }
+      match /liked/{id}         { allow read, write: if isUser(uid); }
+      // Anybody logged in can notify a user (new comment, new subscriber);
+      // only the recipient can read or change the notifications.
+      match /notifications/{id} {
+        allow create: if signedIn();
+        allow read, update, delete: if isUser(uid);
+      }
+    }
+
+    // Channels are public; only the owner changes them (BR04, BR18).
+    match /channels/{id} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid;
+      allow update: if (signedIn() && resource.data.ownerId == request.auth.uid)
+                    || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['subscriberCount']);
+      allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+
+      // Subscribers of a channel: used to notify them of new videos (BR08).
+      match /subscribers/{uid} {
+        allow read: if signedIn();
+        allow write: if isUser(uid);
+      }
+    }
+
+    // Reservation of unique channel names (BR04).
+    match /channelNames/{name} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid;
+      allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
+    // Public videos are readable by everybody, guests included (BR05, BR07).
+    match /videos/{id} {
+      allow read: if resource.data.visibility == 'public'
+                  || (signedIn() && resource.data.ownerId == request.auth.uid);
+      // BR18: a video can only be published to a channel owned by the uploader.
+      allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid
+                    && get(/databases/$(database)/documents/channels/$(request.resource.data.channelId)).data.ownerId == request.auth.uid;
+      allow update: if (signedIn() && resource.data.ownerId == request.auth.uid)
+                    || request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['viewCount', 'likeCount', 'commentCount']);
+      allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if signedIn() && request.resource.data.authorId == request.auth.uid;
+        allow delete: if signedIn() && (
+          resource.data.authorId == request.auth.uid ||
+          get(/databases/$(database)/documents/videos/$(id)).data.ownerId == request.auth.uid);
+      }
+      match /likes/{uid} {
+        allow read: if true;
+        allow write: if isUser(uid);
+        // The owner can remove them when the video is deleted (BR15).
+        allow delete: if signedIn()
+          && get(/databases/$(database)/documents/videos/$(id)).data.ownerId == request.auth.uid;
+      }
+    }
+
+    // Marker of the development seed data.
+    match /meta/{doc} {
+      allow read, write: if signedIn();
+    }
+  }
+}

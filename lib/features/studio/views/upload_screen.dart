@@ -241,7 +241,7 @@ class _MediaColumn extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    picked ? '$sizeMb MB. Tap to change.' : 'MP4, MOV or WebM, up to 100 MB',
+                    picked ? '$sizeMb MB. Tap to change.' : 'MP4, MOV or WebM, up to 40 MB',
                     style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
                   ),
                 ],
@@ -271,7 +271,7 @@ class _MediaColumn extends StatelessWidget {
                   Text('Thumbnail (optional)', style: theme.textTheme.labelLarge),
                   const SizedBox(height: 2),
                   Text(
-                    'Without one, a frame of the video is used.',
+                    'Image up to 5 MB (resized automatically). Without one, a frame of the video is used.',
                     style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
                   ),
                   Wrap(

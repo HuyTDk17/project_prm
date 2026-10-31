@@ -70,8 +70,13 @@ class AuthViewModel extends ChangeNotifier {
     } on AuthException catch (e) {
       _errorMessage = e.message;
       return false;
-    } catch (_) {
-      _errorMessage = AppStrings.genericError;
+    } catch (e, st) {
+      // Keep the real reason visible while developing (permission-denied,
+      // missing database, network...), instead of hiding it.
+      debugPrint('Auth failed: $e\n$st');
+      _errorMessage = kDebugMode
+          ? '${AppStrings.genericError}\n($e)'
+          : AppStrings.genericError;
       return false;
     } finally {
       _isLoading = false;

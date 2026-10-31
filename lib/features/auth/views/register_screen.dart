@@ -53,8 +53,8 @@ class _RegisterFormState extends State<_RegisterForm> {
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    // On success the router redirects to Home.
-    await context.read<AuthViewModel>().register(_name.text, _email.text, _password.text);
+    final ok = await context.read<AuthViewModel>().register(_name.text, _email.text, _password.text);
+    if (ok && mounted) context.go(RouteNames.home);
   }
 
   @override
@@ -163,7 +163,12 @@ class _RegisterFormState extends State<_RegisterForm> {
         const SizedBox(height: 20),
         GoogleButton(
           label: 'Sign up with Google',
-          onPressed: auth.isLoading ? null : () => context.read<AuthViewModel>().loginWithGoogle(),
+          onPressed: auth.isLoading
+              ? null
+              : () async {
+                  final ok = await context.read<AuthViewModel>().loginWithGoogle();
+                  if (ok && context.mounted) context.go(RouteNames.home);
+                },
         ),
         const SizedBox(height: 16),
         Center(

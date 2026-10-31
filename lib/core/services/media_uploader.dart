@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import '../constants/media_limits.dart';
+
 class UploadException implements Exception {
   const UploadException(this.message);
   final String message;
@@ -27,6 +29,11 @@ abstract class MediaUploader {
     void Function(double progress)? onProgress,
   });
 
-  /// Returns the address of the uploaded image.
-  Future<String> uploadImage({required Uint8List bytes, required String filename});
+  /// Shrinks the image (longest side at most [maxSide] pixels), uploads it and
+  /// returns its address.
+  Future<String> uploadImage({
+    required Uint8List bytes,
+    required String filename,
+    int maxSide = MediaLimits.thumbnailSide,
+  });
 }

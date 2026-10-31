@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 
 import '../config/cloudinary_config.dart';
 import '../constants/app_strings.dart';
+import '../constants/media_limits.dart';
+import '../utils/image_compressor.dart';
 import 'media_uploader.dart';
 
 /// Uploads files from the browser straight to Cloudinary with an unsigned
@@ -29,8 +31,14 @@ class CloudinaryService implements MediaUploader {
   }
 
   @override
-  Future<String> uploadImage({required Uint8List bytes, required String filename}) async {
-    final data = await _upload('image', bytes, filename, null);
+  Future<String> uploadImage({
+    required Uint8List bytes,
+    required String filename,
+    int maxSide = MediaLimits.thumbnailSide,
+  }) async {
+    // Smaller files use less of the free Cloudinary storage and bandwidth.
+    final image = ImageCompressor.compress(bytes, filename, maxSide: maxSide);
+    final data = await _upload('image', image.bytes, image.filename, null);
     return data['secure_url'] as String;
   }
 

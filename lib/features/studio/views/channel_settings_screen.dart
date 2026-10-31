@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_strings.dart';
+import '../../../core/constants/media_limits.dart';
 import '../../../core/routes/route_names.dart';
 import '../../../core/services/media_uploader.dart';
 import '../../../core/theme/app_colors.dart';
@@ -78,6 +79,10 @@ class _ChannelSettingsScreenState extends State<ChannelSettingsScreen> {
       const XTypeGroup(label: 'Images', extensions: ['jpg', 'jpeg', 'png', 'webp']),
     ]);
     if (file == null) return null;
+    if (await file.length() > MediaLimits.maxImageBytes) {
+      if (mounted) setState(() => _error = AppStrings.imageTooLarge);
+      return null;
+    }
     return (await file.readAsBytes(), file.name);
   }
 
@@ -94,8 +99,10 @@ class _ChannelSettingsScreenState extends State<ChannelSettingsScreen> {
       final uploader = context.read<MediaUploader>();
       String? avatarUrl;
       String? bannerUrl;
-      if (_avatarBytes != null) avatarUrl = await uploader.uploadImage(bytes: _avatarBytes!, filename: _avatarName);
-      if (_bannerBytes != null) bannerUrl = await uploader.uploadImage(bytes: _bannerBytes!, filename: _bannerName);
+      if (_avatarBytes != null) avatarUrl = await uploader.uploadImage(
+          bytes: _avatarBytes!, filename: _avatarName, maxSide: MediaLimits.avatarSide);
+      if (_bannerBytes != null) bannerUrl = await uploader.uploadImage(
+          bytes: _bannerBytes!, filename: _bannerName, maxSide: MediaLimits.bannerSide);
       if (!mounted) return;
       final name = _name.text.trim();
       final description = _description.text.trim();

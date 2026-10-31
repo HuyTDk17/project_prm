@@ -2,6 +2,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../../core/constants/app_strings.dart';
+import '../../../core/constants/media_limits.dart';
 import '../../../core/services/media_uploader.dart';
 import '../../../shared/models/app_user.dart';
 import '../../../shared/models/channel.dart';
@@ -20,7 +21,7 @@ class UploadViewModel extends ChangeNotifier {
   }
 
   /// BR06: maximum size of a video file.
-  static const maxVideoBytes = 100 * 1024 * 1024;
+  static const maxVideoBytes = MediaLimits.maxVideoBytes;
 
   final MediaUploader _uploader;
   final VideoRepository _videos;
@@ -75,8 +76,14 @@ class UploadViewModel extends ChangeNotifier {
       const XTypeGroup(label: 'Images', extensions: ['jpg', 'jpeg', 'png', 'webp']),
     ]);
     if (file == null) return;
+    if (await file.length() > MediaLimits.maxImageBytes) {
+      _error = AppStrings.imageTooLarge;
+      notifyListeners();
+      return;
+    }
     _thumbName = file.name;
     _thumbBytes = await file.readAsBytes();
+    _error = null;
     notifyListeners();
   }
 

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_strings.dart';
+import '../../../core/constants/media_limits.dart';
 import '../../../core/routes/route_names.dart';
 import '../../../core/services/media_uploader.dart';
 import '../../../core/utils/context_ext.dart';
@@ -85,9 +86,14 @@ class _EditVideoScreenState extends State<EditVideoScreen> {
       const XTypeGroup(label: 'Images', extensions: ['jpg', 'jpeg', 'png', 'webp']),
     ]);
     if (file == null) return;
+    if (await file.length() > MediaLimits.maxImageBytes) {
+      if (mounted) setState(() => _error = AppStrings.imageTooLarge);
+      return;
+    }
     final bytes = await file.readAsBytes();
     if (!mounted) return;
     setState(() {
+      _error = null;
       _thumbBytes = bytes;
       _thumbName = file.name;
     });

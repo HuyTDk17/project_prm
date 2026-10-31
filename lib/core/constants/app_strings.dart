@@ -13,7 +13,8 @@ abstract final class AppStrings {
   static const channelNameTaken = 'This channel name already exists.'; // MSG08
   static const maxChannels = 'You can own at most 5 channels.'; // MSG27
   static const videoRequired = 'Please select a video file.'; // MSG10
-  static const videoTooLarge = 'The video must be 100 MB or smaller.'; // BR06
+  static const videoTooLarge = 'The video must be 40 MB or smaller.'; // BR06
+  static const imageTooLarge = 'The image must be 5 MB or smaller.'; // BR06 / MSG36
   static const titleInvalid = 'Title is required (1-100 characters).'; // MSG09
   static const categoryRequired = 'Please choose a category.';
   static const uploadSuccess = 'Video uploaded successfully.'; // MSG11
